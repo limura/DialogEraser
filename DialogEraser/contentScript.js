@@ -72,4 +72,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log("unknown message", message);
         break;
     }
+    return true;
 });
