@@ -1,0 +1,11 @@
+{
+  "appDescription": {
+    "message": "Webページに表示されているFloatingWindowを消します"
+  },
+  "PageActionDefaultTitle": {
+    "message": "FloatingWindowを消す"
+  },
+  "KeyboardShortcutEraseDialog": {
+    "message": "ダイアログボックスを消します"
+  }
+}

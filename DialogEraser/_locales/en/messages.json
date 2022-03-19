@@ -1,0 +1,11 @@
+{
+  "appDescription": {
+    "message": "Erase floating window"
+  },
+  "PageActionDefaultTitle": {
+    "message": "Erase floating window"
+  },
+  "KeyboardShortcutEraseDialog": {
+    "message": "Erase floating window"
+  }
+}
