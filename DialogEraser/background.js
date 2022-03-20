@@ -3,11 +3,11 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 function UnDisplayThis(tabID) {
-    chrome.tabs.sendMessage(tabID, {type: "UnDisplayThis"})
+    chrome.tabs.sendMessage(tabID, {type: "UnDisplayThis"});
 }
 
 function AssignDisableThisSite(tabID) {
-    chrome.tabs.sendMessage(tabID, {type: "AssignDisableThisSite"})
+    chrome.tabs.sendMessage(tabID, {type: "AssignDisableThisSite"});
 }
 
 const langCode = navigator.language;

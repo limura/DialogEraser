@@ -7,5 +7,11 @@
   },
   "KeyboardShortcutEraseDialog": {
     "message": "ダイアログボックスを消します"
+  },
+  "ContextMenuTitle_UnDisplayThis": {
+    "message": "非表示にする"
+  },
+  "ContextMenuTitle_AssignDisableThisSite": {
+      "message": "常にこのサイトでダイアログを非表示にする"
   }
 }

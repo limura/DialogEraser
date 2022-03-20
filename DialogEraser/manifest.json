@@ -14,7 +14,7 @@
       "js": ["contentScript.js"]
     }
   ],
-  "permissions": ["activeTab", "contextMenus"],
+  "permissions": ["activeTab", "contextMenus", "storage"],
   "commands": {
     "erase-dialog": {
       "description": "__MSG_KeyboardShortcutEraseDialog__"

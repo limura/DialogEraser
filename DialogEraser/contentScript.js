@@ -1,3 +1,66 @@
+const HistoryMapKey = 'historyMap';
+
+function GetUniqueID(){
+    return location.href.replace(location.pathname, '');
+}
+
+function AddHistory(uniqueID){
+    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON)=>{
+        var history = historyMapJSON[HistoryMapKey];
+        if(history){
+            var currentData = history[uniqueID];
+            if(currentData){
+                const isDisabled = currentData['isDisabled'];
+                if(!isDisabled){
+                    currentData['zapCount'] = currentData['zapCount'] + 1;
+                }
+            }else{
+                currentData = {
+                    zapCount: 1
+                }
+            }
+            history[uniqueID] = currentData;
+        }else{
+            history = {}
+            history[uniqueID] = { zapCount: 1 };
+        }
+        const saveData = {};
+        saveData[HistoryMapKey] = history;
+        chrome.storage.sync.set(saveData);
+    });
+}
+
+function AssignDisable(uniqueID, completion){
+    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON)=>{
+        var history = historyMapJSON[HistoryMapKey];
+        if(history){
+            var currentData = history[uniqueID];
+            if(currentData){
+                currentData['isDisabled'] = true;
+            }else{
+                return;
+            }
+            history[uniqueID] = currentData;
+        }else{
+            history = {}
+            history[uniqueID] = { zapCount: 0, isDisabled: true };
+        }
+        const saveData = {};
+        saveData[HistoryMapKey] = history;
+        chrome.storage.sync.set(saveData, ()=>{completion();});
+    });
+}
+
+// isDisabled が true なWebサイトであれば自動で発火するようにします
+function ZapIfDisabledSite(uniqueID){
+    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON) => {
+        const history = historyMapJSON[HistoryMapKey];
+        if(history?.[uniqueID]?.isDisabled){
+            ToggleAllDialogs();
+        }
+    });
+}
+
 var zapedElementArray= [];
 function ZapElement(element){
     if(!element.style){ return; }
@@ -34,6 +97,7 @@ function FindAndKillDialog(targetElement, depthRemaining, depthMax){
 function ToggleAllDialogs(){
     if(zapedElementArray.length <= 0){
         FindAndKillDialog(document.body, 0, 10);
+        //AddHistory(GetUniqueID());
     }else{
         ResumeZapedElements();
     }
@@ -60,6 +124,14 @@ function UnDisplayThis(){
     ZapElement(floatingTopElement);
 }
 
+function AssignDisableThisSite(){
+    AssignDisable(GetUniqueID(), ()=>{
+        if(zapedElementArray.length <= 0){
+            ToggleAllDialogs();
+        }
+    });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch(message.type){
     case "ToggleAllDialogs":
@@ -68,9 +140,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case "UnDisplayThis":
         UnDisplayThis();
         break;
+    case "AssignDisableThisSite":
+        AssignDisableThisSite();
+        break;
     default:
         console.log("unknown message", message);
         break;
     }
     return true;
 });
+
+setTimeout(()=>{
+    ZapIfDisabledSite(GetUniqueID());
+}, 1500);
