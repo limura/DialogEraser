@@ -1,61 +1,35 @@
-const HistoryMapKey = 'historyMap';
+const HostSettingMapKey = 'HostSettingMap';
 
 function GetUniqueID(){
     return location.href.replace(location.pathname, '');
 }
 
-function AddHistory(uniqueID){
-    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON)=>{
-        var history = historyMapJSON[HistoryMapKey];
-        if(history){
-            var currentData = history[uniqueID];
-            if(currentData){
-                const isDisabled = currentData['isDisabled'];
-                if(!isDisabled){
-                    currentData['zapCount'] = currentData['zapCount'] + 1;
-                }
-            }else{
-                currentData = {
-                    zapCount: 1
-                }
-            }
-            history[uniqueID] = currentData;
-        }else{
-            history = {}
-            history[uniqueID] = { zapCount: 1 };
-        }
-        const saveData = {};
-        saveData[HistoryMapKey] = history;
-        chrome.storage.sync.set(saveData);
-    });
-}
-
 function AssignDisable(uniqueID, completion){
-    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON)=>{
-        var history = historyMapJSON[HistoryMapKey];
-        if(history){
-            var currentData = history[uniqueID];
+    chrome.storage.sync.get([HostSettingMapKey], (hostSettingMap)=>{
+        var hostSetting = hostSettingMap[HostSettingMapKey];
+        if(hostSetting){
+            var currentData = hostSetting[uniqueID];
             if(currentData){
                 currentData['isDisabled'] = true;
             }else{
                 return;
             }
-            history[uniqueID] = currentData;
+            hostSetting[uniqueID] = currentData;
         }else{
-            history = {}
-            history[uniqueID] = { zapCount: 0, isDisabled: true };
+            hostSetting = {}
+            hostSetting[uniqueID] = { zapCount: 0, isDisabled: true };
         }
         const saveData = {};
-        saveData[HistoryMapKey] = history;
+        saveData[HostSettingMapKey] = hostSetting;
         chrome.storage.sync.set(saveData, ()=>{completion();});
     });
 }
 
 // isDisabled が true なWebサイトであれば自動で発火するようにします
 function ZapIfDisabledSite(uniqueID){
-    chrome.storage.sync.get([HistoryMapKey], (historyMapJSON) => {
-        const history = historyMapJSON[HistoryMapKey];
-        if(history?.[uniqueID]?.isDisabled){
+    chrome.storage.sync.get([HostSettingMapKey], (hostSettingMap) => {
+        const hostSetting = hostSettingMap[HostSettingMapKey];
+        if(hostSetting?.[uniqueID]?.isDisabled){
             ToggleAllDialogs();
         }
     });
@@ -97,7 +71,6 @@ function FindAndKillDialog(targetElement, depthRemaining, depthMax){
 function ToggleAllDialogs(){
     if(zapedElementArray.length <= 0){
         FindAndKillDialog(document.body, 0, 10);
-        //AddHistory(GetUniqueID());
     }else{
         ResumeZapedElements();
     }
@@ -150,6 +123,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
 });
 
-setTimeout(()=>{
-    ZapIfDisabledSite(GetUniqueID());
-}, 1500);
+chrome.storage.sync.get([HostSettingMapKey], (hostSettingMap) => {
+    const uniqueID = GetUniqueID();
+    const hostSetting = hostSettingMap[HostSettingMapKey];
+    if(hostSetting?.[uniqueID]?.isDisabled){
+        const timeoutMillisecond = hostSetting?.[uniqueID]?.timeoutMillisecond ?? 1500;
+        setTimeout(()=>{
+            ZapIfDisabledSite(uniqueID);
+        }, 1500);
+    }
+});
+
+
